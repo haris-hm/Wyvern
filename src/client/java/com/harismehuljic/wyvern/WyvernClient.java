@@ -1,0 +1,10 @@
+package com.harismehuljic.wyvern;
+
+import net.fabricmc.api.ClientModInitializer;
+
+public class WyvernClient implements ClientModInitializer {
+	@Override
+	public void onInitializeClient() {
+		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+	}
+}
