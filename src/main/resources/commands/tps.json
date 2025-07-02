@@ -1,0 +1,4 @@
+{
+  "name": "tps",
+  "description": "Returns the server's current ticks per second."
+}

@@ -1,0 +1,38 @@
+{
+  "name": "title",
+  "description": "Displays a title command to all players.",
+  "options": [
+    {
+      "name": "title_text",
+      "description": "The text to display in the main title.",
+      "type": 3,
+      "required": true
+    },
+    {
+      "name": "subtitle_text",
+      "description": "The text to display in the subtitle.",
+      "type": 3,
+      "required": false
+    },
+    {
+      "name": "title_color",
+      "description": "The color of the main title text.",
+      "type": 3,
+      "required": false,
+      "autocomplete": true
+    },
+    {
+      "name": "subtitle_color",
+      "description": "The color of the subtitle text.",
+      "type": 3,
+      "required": false,
+      "autocomplete": true
+    },
+    {
+      "name": "length",
+      "description": "How long (in seconds) to display the title (maximum of 15 seconds).",
+      "type": 4,
+      "required": false
+    }
+  ]
+}

@@ -17,17 +17,10 @@
 	"entrypoints": {
 		"main": [
 			"com.harismehuljic.wyvern.Wyvern"
-		],
-		"client": [
-			"com.harismehuljic.wyvern.WyvernClient"
 		]
 	},
 	"mixins": [
-		"wyvern.mixins.json",
-		{
-			"config": "wyvern.client.mixins.json",
-			"environment": "client"
-		}
+		"wyvern.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.14",
