@@ -43,7 +43,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	// Discord API
-	shadow(implementation ('com.discord4j:discord4j-core:3.3.0-RC1'))
+	shadow(implementation ('com.discord4j:discord4j-core:3.3.0-RC2'))
 }
 
 processResources {

@@ -48,8 +48,8 @@ public class GuildCommandRegistrar {
         is changed/added/removed
         */
         applicationService.bulkOverwriteGuildApplicationCommand(applicationId, Wyvern.CONFIG_DATA.getDiscordGuildId(), commands)
-                .doOnNext(cmd -> Wyvern.DISCORD_BOT.getDiscordLogger().debug("Successfully registered Global Command {}", cmd.name()))
-                .doOnError(e -> Wyvern.DISCORD_BOT.getDiscordLogger().error("Failed to register global commands", e))
+                .doOnNext(cmd -> Wyvern.LOGGER.debug("Successfully registered Global Command {}", cmd.name()))
+                .doOnError(e -> Wyvern.LOGGER.error("Failed to register global commands", e))
                 .subscribe();
     }
 

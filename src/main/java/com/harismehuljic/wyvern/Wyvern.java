@@ -24,13 +24,13 @@ public class Wyvern implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Miku SMP Utils version {} loading.", VERSION);
+		LOGGER.info("Wyvern version {} loading.", VERSION);
 
 		CONFIG_DATA = ConfigManager.loadConfig();
 
 		DISCORD_BOT.initialize();
 		Registries.registerAllRegistries();
 
-		LOGGER.info("Miku SMP Utils successfully loaded!");
+		LOGGER.info("Wyvern successfully loaded!");
 	}
 }

@@ -11,8 +11,6 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DiscordBot {
-    private final Logger discordLogger = LoggerFactory.getLogger(Wyvern.MOD_ID + "_discord");
     private final ExecutorService discordBotThread = Executors.newSingleThreadExecutor();
     private final List<String> applicationCommands;
 
@@ -33,17 +30,17 @@ public class DiscordBot {
     public void initialize() {
         ConfigData configData = Wyvern.CONFIG_DATA;
         if (configData.getDiscordToken() == null || configData.getDiscordToken().isBlank()) {
-            this.discordLogger.error("Discord token has not been set up. Please set it in the config file.");
+            Wyvern.LOGGER.error("Discord token has not been set up. Please set it in the config file.");
             return;
         }
 
         if (configData.getDiscordChannelId() == 0) {
-            this.discordLogger.error("Discord channel ID has not been set up. Please set it in the config file.");
+            Wyvern.LOGGER.error("Discord channel ID has not been set up. Please set it in the config file.");
             return;
         }
 
         if (configData.getDiscordGuildId() == 0) {
-            this.discordLogger.error("Discord guild ID has not been set up. Please set it in the config file.");
+            Wyvern.LOGGER.error("Discord guild ID has not been set up. Please set it in the config file.");
             return;
         }
 
@@ -56,7 +53,7 @@ public class DiscordBot {
                         .block();
 
                 if (this.discordClient != null) {
-                    this.discordLogger.info("Discord bot logged in successfully!");
+                    Wyvern.LOGGER.info("Discord bot logged in successfully!");
 
                     new EventRegistrar(discordClient).registerEvents();
 
@@ -70,7 +67,7 @@ public class DiscordBot {
                     new GuildCommandRegistrar(this.discordClient.getRestClient()).registerCommands(this.applicationCommands);
                 }
                 catch (Exception e) {
-                    this.discordLogger.error("Error during Discord bot command registration:", e);
+                    Wyvern.LOGGER.error("Error during Discord bot command registration:", e);
                 }
 
                 //Register our slash command listener
@@ -79,7 +76,7 @@ public class DiscordBot {
                         .block(); // We use .block() as there is not another non-daemon thread and the jvm would close otherwise.
             }
             catch (Exception e) {
-                discordLogger.error("Error during Discord bot initialization:", e);
+                Wyvern.LOGGER.error("Error during Discord bot initialization:", e);
             }
 
         });
@@ -88,6 +85,7 @@ public class DiscordBot {
     public void shutdown() {
         this.discordClient.logout().block();
         this.discordBotThread.shutdown();
+        Wyvern.LOGGER.info("Discord bot has been shut down.");
     }
 
     public void sendMessageInGuild(String message) {
@@ -99,13 +97,12 @@ public class DiscordBot {
     }
 
     public EmbedCreateSpec generateEmbed(String message) {
-        EmbedCreateSpec embed = EmbedCreateSpec.builder()
+
+        return EmbedCreateSpec.builder()
                 .color(Color.CYAN)
                 .description(message)
                 .timestamp(Instant.now())
                 .build();
-
-        return embed;
     }
 
     private TextChannel getBotChannel() {
@@ -113,18 +110,5 @@ public class DiscordBot {
                 .getChannelById(Snowflake.of(Wyvern.CONFIG_DATA.getDiscordChannelId()))
                 .cast(TextChannel.class)
                 .block();
-    }
-
-    // Getters and setters
-    public Logger getDiscordLogger() {
-        return discordLogger;
-    }
-
-    public ExecutorService getDiscordBotThread() {
-        return discordBotThread;
-    }
-
-    public GatewayDiscordClient getDiscordClient() {
-        return discordClient;
     }
 }
