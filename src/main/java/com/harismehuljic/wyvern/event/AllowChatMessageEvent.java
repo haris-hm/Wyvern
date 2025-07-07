@@ -28,8 +28,17 @@ public class AllowChatMessageEvent implements ServerMessageEvents.AllowChatMessa
     @Override
     public boolean allowChatMessage(SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters params) {
         String messageContents = message.getSignedContent();
-        String playerName = Objects.requireNonNull(sender.getDisplayName()).getString();
-        String discordMsg = String.format("**%s**  》%s", playerName, messageContents);
+        String discordMsg;
+
+        String playerName = String.format("**%s**", Objects.requireNonNull(sender.getDisplayName()).getString());
+        String realName = Objects.requireNonNull(sender.getGameProfile().getName());
+
+        if (!realName.isEmpty() && realName.equals(playerName)) {
+            discordMsg = String.format("**%s**  》%s", playerName, messageContents);
+        }
+        else {
+            discordMsg = String.format("**%s** (*%s*)  》%s", playerName, realName, messageContents);
+        }
 
         if (Wyvern.CONFIG_DATA.allowChatMessages()) {
             Wyvern.DISCORD_BOT.sendMessageInGuild(discordMsg);
