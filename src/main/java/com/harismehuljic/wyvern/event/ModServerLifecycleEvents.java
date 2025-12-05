@@ -37,7 +37,9 @@ public class ModServerLifecycleEvents {
                 }
             }
 
-            Wyvern.DISCORD_BOT.shutdown();
+            if (Wyvern.DISCORD_BOT != null) {
+                Wyvern.DISCORD_BOT.shutdown();
+            }
         }
     }
 
