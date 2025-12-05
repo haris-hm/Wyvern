@@ -57,8 +57,14 @@ public class DiscordBot {
 
                     new EventRegistrar(discordClient).registerEvents();
 
+                    EmbedCreateSpec embed = this.generateEmbed("Server started!");
+
                     if (configData.allowLifecycleMessages()) {
-                        this.sendMessageInGuild(this.generateEmbed("Server started!"));
+                        if (configData.sendLifecycleMessagesToAdminChannel()) {
+                            this.sendMessageInGuild(embed, configData.getAdminChannelId());
+                        } else {
+                            this.sendMessageInGuild(embed);
+                        }
                     }
                 }
 
@@ -88,16 +94,61 @@ public class DiscordBot {
         Wyvern.LOGGER.info("Discord bot has been shut down.");
     }
 
+    private boolean isInitialized() {
+        boolean discordClientExists =  this.discordClient != null;
+        if (!discordClientExists) {
+            Wyvern.LOGGER.warn("Discord bot is not initialized. Cannot send message.");
+        }
+        return discordClientExists;
+    }
+
     public void sendMessageInGuild(String message) {
+        if (!this.isInitialized()) {
+            return;
+        }
+
         this.getBotChannel().createMessage(message).block();
     }
 
+    public void sendMessageInGuild(String message, long channelId) {
+        if (!this.isInitialized()) {
+            return;
+        }
+
+        TextChannel channel = this.discordClient
+                .getChannelById(Snowflake.of(channelId))
+                .cast(TextChannel.class)
+                .block();
+
+        if (channel != null) {
+            channel.createMessage(message).block();
+        }
+    }
+
     public void sendMessageInGuild(EmbedCreateSpec embed) {
+        if (!this.isInitialized()) {
+            return;
+        }
+
         this.getBotChannel().createMessage(embed).block();
     }
 
-    public EmbedCreateSpec generateEmbed(String message) {
+    public void sendMessageInGuild(EmbedCreateSpec embed, long channelId) {
+        if (!this.isInitialized()) {
+            return;
+        }
 
+        TextChannel channel = this.discordClient
+                .getChannelById(Snowflake.of(channelId))
+                .cast(TextChannel.class)
+                .block();
+
+        if (channel != null) {
+            channel.createMessage(embed).block();
+        }
+    }
+
+    public EmbedCreateSpec generateEmbed(String message) {
         return EmbedCreateSpec.builder()
                 .color(Color.CYAN)
                 .description(message)

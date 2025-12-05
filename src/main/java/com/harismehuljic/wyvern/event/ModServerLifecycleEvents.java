@@ -2,6 +2,8 @@ package com.harismehuljic.wyvern.event;
 
 import com.harismehuljic.wyvern.Wyvern;
 import com.harismehuljic.wyvern.discord.DiscordBot;
+import discord4j.core.object.Embed;
+import discord4j.core.spec.EmbedCreateSpec;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 
@@ -26,7 +28,13 @@ public class ModServerLifecycleEvents {
         public void onServerStopping(MinecraftServer server) {
             if (Wyvern.CONFIG_DATA.allowLifecycleMessages()) {
                 DiscordBot discordBot = Wyvern.DISCORD_BOT;
-                discordBot.sendMessageInGuild(discordBot.generateEmbed("Server stopping..."));
+                EmbedCreateSpec embed = discordBot.generateEmbed("Server stopping...");
+
+                if (Wyvern.CONFIG_DATA.sendLifecycleMessagesToAdminChannel()) {
+                    discordBot.sendMessageInGuild(embed, Wyvern.CONFIG_DATA.getAdminChannelId());
+                } else {
+                    discordBot.sendMessageInGuild(embed);
+                }
             }
 
             Wyvern.DISCORD_BOT.shutdown();
@@ -38,7 +46,13 @@ public class ModServerLifecycleEvents {
         public void onServerStopped(MinecraftServer server) {
             if (Wyvern.CONFIG_DATA.allowLifecycleMessages()) {
                 DiscordBot discordBot = Wyvern.DISCORD_BOT;
-                discordBot.sendMessageInGuild(discordBot.generateEmbed("Server stopped!"));
+                EmbedCreateSpec embed = discordBot.generateEmbed("Server stopped!");
+
+                if (Wyvern.CONFIG_DATA.sendLifecycleMessagesToAdminChannel()) {
+                    discordBot.sendMessageInGuild(embed, Wyvern.CONFIG_DATA.getAdminChannelId());
+                } else {
+                    discordBot.sendMessageInGuild(embed);
+                }
             }
         }
     }
