@@ -33,7 +33,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
         String discordMsg;
 
         String playerName = String.format("%s", this.player.getDisplayName().getString());
-        String realName = this.player.getGameProfile().getName();
+        String realName = this.player.getGameProfile().name();
 
         Wyvern.LOGGER.info("Player name: {}, Real Name: {}, realName.equals(playerName): {}",
                 playerName, realName, realName.equals(playerName));
