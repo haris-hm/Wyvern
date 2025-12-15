@@ -1,5 +1,7 @@
 package com.harismehuljic.wyvern.config;
 
+import com.harismehuljic.wyvern.Wyvern;
+
 public class ConfigData {
     private String discordToken = "";
     private long discordGuildId = 0;
@@ -8,6 +10,7 @@ public class ConfigData {
     private boolean suppressLifecycleMessages = false;
     private boolean suppressChatMessages = false;
     private boolean sendLifecycleMessagesToAdminChannel = false;
+    private String messageFormat = "<{username}>  {message}";
 
     @Override
     public String toString() {
@@ -18,7 +21,8 @@ public class ConfigData {
                 .append("adminChannelId = " + adminChannelId + "\n")
                 .append("suppressLifecycleMessages = " + suppressLifecycleMessages + "\n")
                 .append("suppressChatMessages = " + suppressChatMessages + "\n")
-                .append("sendLifecycleMessagesToAdminChannel = " + sendLifecycleMessagesToAdminChannel + "\n");
+                .append("sendLifecycleMessagesToAdminChannel = " + sendLifecycleMessagesToAdminChannel + "\n")
+                .append("messageFormat = " + messageFormat + "\n");
 
         return builder.toString();
     }
@@ -44,9 +48,20 @@ public class ConfigData {
         return !suppressLifecycleMessages;
     }
 
-    public boolean allowChatMessages() { return !suppressChatMessages; }
+    public boolean allowChatMessages() {
+        return !suppressChatMessages;
+    }
 
     public boolean sendLifecycleMessagesToAdminChannel() {
         return sendLifecycleMessagesToAdminChannel;
+    }
+
+    public String getMessageFormat() {
+        if (messageFormat == null || messageFormat.isEmpty() || !messageFormat.contains("{username}") || !messageFormat.contains("{message}")) {
+            Wyvern.LOGGER.warn("Invalid message format in config: {}. Format must contain both a \"{username}\" and a \"{message}\" field. Using default Minecraft format.", messageFormat);
+            messageFormat = "<{username}>  {message}";
+        }
+
+        return messageFormat;
     }
 }
