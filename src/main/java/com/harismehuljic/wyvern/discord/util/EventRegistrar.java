@@ -1,6 +1,9 @@
 package com.harismehuljic.wyvern.discord.util;
 
 import com.harismehuljic.wyvern.Wyvern;
+import com.harismehuljic.wyvern.discord.util.markdown.MarkdownParser;
+import com.harismehuljic.wyvern.discord.util.markdown.MarkdownSegment;
+import com.harismehuljic.wyvern.discord.util.markdown.MarkdownSegmentType;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -14,6 +17,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,12 +36,33 @@ public class EventRegistrar {
             String author = message.getAuthor().map(User::getUsername).orElse("Unknown User");
 
             // Early return if the message is from a bot, the server hasn't initialized yet, or the channel isn't the bot's channel
-            if (message.getAuthor().get().isBot() || Wyvern.SERVER == null || channel.getId().asLong() != Wyvern.CONFIG_DATA.getDiscordChannelId()) { return; }
+            if (message.getAuthor().get().isBot() || Wyvern.SERVER == null || channel.getId().asLong() != Wyvern.CONFIG_DATA.getDiscordChannelId()) {
+                return;
+            }
 
             MutableText discordMsg = Text.literal("[Discord] ")
                     .formatted(Formatting.BLUE)
                     .append(Text.literal(author).formatted(Formatting.AQUA))
-                    .append(Text.literal(" 》 " + content).formatted(Formatting.WHITE));
+                    .append(Text.literal(" 》 ").formatted(Formatting.WHITE));
+
+            for (MarkdownSegment msgSegment : MarkdownParser.parse(content)) {
+                String textContent = msgSegment.text();
+
+                switch (msgSegment.type()) {
+                    case PLAIN -> {
+                        discordMsg.append(Text.literal(textContent).formatted(Formatting.WHITE));
+                    }
+                    case BOLD -> {
+                        discordMsg.append(Text.literal(textContent).formatted(Formatting.BOLD, Formatting.WHITE));
+                    }
+                    case ITALICIZED -> {
+                        discordMsg.append(Text.literal(textContent).formatted(Formatting.ITALIC, Formatting.WHITE));
+                    }
+                    case UNDERLINED -> {
+                        discordMsg.append(Text.literal(textContent).formatted(Formatting.UNDERLINE, Formatting.WHITE));
+                    }
+                }
+            }
 
             for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
                 spe.sendMessage(discordMsg);
