@@ -13,7 +13,7 @@ public class TpsCommand implements ApplicationCommand {
     @Override
     public Mono<Void> handle(ChatInputInteractionEvent event) {
         return event.reply()
-                .withEphemeral(false)
+                .withEphemeral(true)
                 .withContent("Current server TPS: " + Wyvern.SERVER.getTickManager().getTickRate());
     }
 }

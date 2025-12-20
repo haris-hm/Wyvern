@@ -74,7 +74,7 @@ public class GuildCommandRegistrar {
      * @return The contents of the file as a String, otherwise throws an exception
      */
     private static String getResourceFileAsString(String fileName) throws IOException {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        ClassLoader classLoader = GuildCommandRegistrar.class.getClassLoader();
         try (InputStream resourceAsStream = classLoader.getResourceAsStream(fileName)) {
             if (resourceAsStream == null) return null;
             try (InputStreamReader inputStreamReader = new InputStreamReader(resourceAsStream);

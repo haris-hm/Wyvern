@@ -21,8 +21,8 @@ public class PlayersCommand implements ApplicationCommand {
     public Mono<Void> handle(ChatInputInteractionEvent event) {
         if (Wyvern.SERVER == null) {
             return event.reply()
-                .withEphemeral(true)
-                .withContent("Sorry, the server is not online yet.");
+                    .withEphemeral(true)
+                    .withContent("Sorry, the server is not online yet.");
         }
 
         StringBuilder playerNameList = new StringBuilder();
@@ -36,19 +36,25 @@ public class PlayersCommand implements ApplicationCommand {
 
         for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
             String playerName = Objects.requireNonNull(spe.getDisplayName()).getString();
-            playerNameList.append(String.format("%s\n", playerName));
+            String realName = Objects.requireNonNull(spe.getGameProfile().name());
+
+            if (playerName.equals(realName)) {
+                playerNameList.append(String.format("%s\n", playerName));
+            } else {
+                playerNameList.append(String.format("%s *(%s)*\n", playerName, realName));
+            }
         }
 
         EmbedCreateSpec embed = EmbedCreateSpec.builder()
-            .color(Color.CYAN)
-            .title("Miku SMP")
-            .description(description)
-            .addField("Players online:", playerNameList.toString(), false)
-            .timestamp(Instant.now())
-            .build();
+                .color(Color.CYAN)
+                .title("Miku SMP")
+                .description(description)
+                .addField("Players online:", playerNameList.toString(), false)
+                .timestamp(Instant.now())
+                .build();
 
         return event.reply()
-            .withEphemeral(false)
-            .withEmbeds(embed);
+                .withEphemeral(false)
+                .withEmbeds(embed);
     }
 }
