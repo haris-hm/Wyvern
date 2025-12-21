@@ -8,25 +8,23 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.gateway.intent.Intent;
 import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.util.Color;
-import reactor.core.publisher.Flux;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DiscordBot {
     private final ExecutorService discordBotThread = Executors.newSingleThreadExecutor();
     private final List<String> applicationCommands;
-    private final List<String> cachedMemberNames = new CopyOnWriteArrayList<>();
+    private final HashMap<String, Long> cachedMemberNames = new HashMap<>();
 
     private GatewayDiscordClient discordClient;
 
@@ -176,18 +174,18 @@ public class DiscordBot {
         ConfigData configData = Wyvern.CONFIG_DATA;
         Snowflake guildId = Snowflake.of(configData.getDiscordGuildId());
 
-        cachedMemberNames.clear();
+        this.cachedMemberNames.clear();
 
-        Flux<Member> guildMembers = this.discordClient.getGuildMembers(guildId);
-
-        guildMembers.subscribe(member -> {
-            if (member.isBot()) return;
-            cachedMemberNames.add(member.getUsername());
-        }, error -> Wyvern.LOGGER.error("Error processing Discord guild members: {}", error.getMessage()));
+        this.discordClient.getGuildMembers(guildId)
+                .filter(member -> !member.isBot())
+                .subscribe(
+                        member -> this.cachedMemberNames.put(member.getUsername(), member.getId().asLong()),
+                        error -> Wyvern.LOGGER.error("Error processing Discord guild members: {}", error.getMessage())
+                );
     }
 
-    public void addToMemberCache(String username) {
-        this.cachedMemberNames.add(username);
+    public void addToMemberCache(String username, long memberId) {
+        this.cachedMemberNames.put(username, memberId);
     }
 
     public void removeFromMemberCache(String username) {
@@ -195,7 +193,11 @@ public class DiscordBot {
     }
 
     public List<String> getGuildMembers() {
-        return new ArrayList<>(cachedMemberNames);
+        return new ArrayList<>(this.cachedMemberNames.keySet());
+    }
+
+    public long getMemberId(String username) {
+        return this.cachedMemberNames.get(username);
     }
 
     private TextChannel getBotChannel() {

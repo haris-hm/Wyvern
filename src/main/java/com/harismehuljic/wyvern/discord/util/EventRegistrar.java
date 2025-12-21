@@ -95,7 +95,7 @@ public class EventRegistrar {
     private void processMemberJoin(MemberJoinEvent event, DiscordBot bot) {
         Member newMember = event.getMember();
         if (newMember.isBot()) return;
-        bot.addToMemberCache(newMember.getUsername());
+        bot.addToMemberCache(newMember.getUsername(), newMember.getId().asLong());
     }
 
     private void processMemberLeave(MemberLeaveEvent event, DiscordBot bot) {
