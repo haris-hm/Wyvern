@@ -1,7 +1,9 @@
 package com.harismehuljic.wyvern;
 
+import com.harismehuljic.wyvern.command.PingCommand;
 import com.harismehuljic.wyvern.event.GameMessageEvent;
 import com.harismehuljic.wyvern.event.ModServerLifecycleEvents;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 
@@ -12,6 +14,7 @@ public class Registries {
     }
 
     private static void registerCommands() {
+        CommandRegistrationCallback.EVENT.register(PingCommand::register);
     }
 
     private static void registerEvents() {
