@@ -16,13 +16,15 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class EventRegistrar {
     private final GatewayDiscordClient discordClient;
@@ -52,10 +54,36 @@ public class EventRegistrar {
             return;
         }
 
-        MutableText discordMsg = Text.literal("[Discord] ")
-                .formatted(Formatting.BLUE)
-                .append(Text.literal(author).formatted(Formatting.AQUA))
-                .append(Text.literal(" 》 ").formatted(Formatting.WHITE));
+        Optional<URI> messageURI = getMessageUrl(message);
+        MutableText discordMsg = Text.literal("[Discord]");
+        messageURI.ifPresent(uri -> {
+            discordMsg.setStyle(
+                    Style.EMPTY
+                            .withClickEvent(new ClickEvent.OpenUrl(uri))
+                            .withHoverEvent(new HoverEvent.ShowText(Text.of("Click to view in Discord")))
+                            .withFormatting(Formatting.BLUE)
+            );
+        });
+
+        discordMsg.append(Text.literal(" " + author).formatted(Formatting.AQUA));
+
+        message.getReferencedMessage().ifPresent(referencedMessage -> {
+            String referencedContent = referencedMessage.getContent();
+            String referencedAuthor = message.getAuthor().map(User::getUsername).orElse("Unknown User");
+            if (referencedContent.isEmpty() && !referencedMessage.getAttachments().isEmpty()) {
+                referencedContent = "Image/File posted";
+            }
+
+            if (referencedContent.length() > 20) {
+                referencedContent = referencedContent.substring(0, 20) + "...";
+            }
+
+            String replyText = String.format(" in reply to %s \"%s\"", referencedAuthor, referencedContent);
+
+            discordMsg.append(Text.literal(replyText).formatted(Formatting.AQUA));
+        });
+
+        discordMsg.append(Text.literal(" 》 ").formatted(Formatting.WHITE));
 
         for (MarkdownSegment msgSegment : MarkdownParser.parse(content)) {
             String textContent = msgSegment.text();
@@ -68,6 +96,11 @@ public class EventRegistrar {
             }
 
             discordMsg.append(Text.literal(textContent).formatted(segmentFormatting));
+        }
+
+        if (!message.getAttachments().isEmpty()) {
+            if (!discordMsg.getString().endsWith(" ")) discordMsg.append(Text.literal(" "));
+            discordMsg.append(Text.literal("(This message contains images and/or files attached. Click this message to view in Discord.)").formatted(Formatting.ITALIC, Formatting.WHITE));
         }
 
         for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
@@ -103,5 +136,25 @@ public class EventRegistrar {
         Member newMember = event.getMember().get();
         if (newMember.isBot()) return;
         bot.removeFromMemberCache(newMember.getUsername());
+    }
+
+    private Optional<URI> getMessageUrl(Message message) {
+        long guildId = Wyvern.CONFIG_DATA.getDiscordGuildId();
+        long channelId = message.getChannelId().asLong();
+        long messageId = message.getId().asLong();
+
+        try {
+            return Optional.of(new URI(
+                    String.format(
+                            "https://discord.com/channels/%d/%d/%d",
+                            guildId,
+                            channelId,
+                            messageId
+                    )
+            ));
+        } catch (URISyntaxException e) {
+            Wyvern.LOGGER.warn("Invalid Discord message URI generated: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 }
