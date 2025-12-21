@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class EventRegistrar {
     private final GatewayDiscordClient discordClient;
@@ -68,14 +69,25 @@ public class EventRegistrar {
         discordMsg.append(Text.literal(" " + author).formatted(Formatting.AQUA));
 
         message.getReferencedMessage().ifPresent(referencedMessage -> {
-            String referencedContent = referencedMessage.getContent();
-            String referencedAuthor = message.getAuthor().map(User::getUsername).orElse("Unknown User");
-            if (referencedContent.isEmpty() && !referencedMessage.getAttachments().isEmpty()) {
-                referencedContent = "Image/File posted";
+            AtomicReference<String> referencedContent = new AtomicReference<>(referencedMessage.getContent().trim());
+            String referencedAuthor = referencedMessage.getAuthor().map(User::getUsername).orElse("Unknown User");
+
+            if (referencedMessage.getAuthor().get().getId().equals(this.discordClient.getSelfId())) {
+                if (referencedContent.get().contains("》")) {
+                    referencedContent.set(referencedContent.get().split("》")[1].trim());
+                }
+
+                if (!referencedMessage.getEmbeds().isEmpty()) {
+                    referencedMessage.getEmbeds().getFirst().getDescription().ifPresent(referencedContent::set);
+                }
             }
 
-            if (referencedContent.length() > 20) {
-                referencedContent = referencedContent.substring(0, 20) + "...";
+            if (referencedContent.get().isEmpty() && !referencedMessage.getAttachments().isEmpty()) {
+                referencedContent.set("Image/File posted");
+            }
+
+            if (referencedContent.get().length() > 40) {
+                referencedContent.set(referencedContent.get().substring(0, 40) + "...");
             }
 
             String replyText = String.format(" in reply to %s \"%s\"", referencedAuthor, referencedContent);
