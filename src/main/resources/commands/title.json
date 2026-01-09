@@ -29,6 +29,34 @@
       "autocomplete": true
     },
     {
+      "name": "title_bolded",
+      "description": "Whether the title text is bolded.",
+      "type": 5,
+      "required": false,
+      "autocomplete": true
+    },
+    {
+      "name": "title_italicized",
+      "description": "Whether the title is italicized.",
+      "type": 5,
+      "required": false,
+      "autocomplete": true
+    },
+    {
+      "name": "subtitle_bolded",
+      "description": "Whether the subtitle is bolded.",
+      "type": 5,
+      "required": false,
+      "autocomplete": true
+    },
+    {
+      "name": "subtitle_italicized",
+      "description": "Whether the subtitle is italicized.",
+      "type": 5,
+      "required": false,
+      "autocomplete": true
+    },
+    {
       "name": "length",
       "description": "How long (in seconds) to display the title (maximum of 15 seconds).",
       "type": 4,
