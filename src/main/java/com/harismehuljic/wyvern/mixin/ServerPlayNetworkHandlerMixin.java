@@ -1,7 +1,5 @@
 package com.harismehuljic.wyvern.mixin;
 
-import com.harismehuljic.wyvern.Wyvern;
-import com.harismehuljic.wyvern.util.MessageFormatter;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
@@ -26,10 +24,10 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
 
     @Inject(at = @At("HEAD"), method = "handleDecoratedMessage")
     private void onHandleDecoratedMessage(SignedMessage message, CallbackInfo ci) {
-        String discordMsg = MessageFormatter.formatDiscordMessage(this.player, message.getSignedContent());
-
-        if (Wyvern.CONFIG_DATA.allowChatMessages()) {
-            Wyvern.DISCORD_BOT.sendMessageInGuild(discordMsg);
-        }
+//        String discordMsg = MessageFormatter.formatDiscordMessage(this.player, message.getSignedContent());
+//
+//        if (Wyvern.CONFIG_DATA.allowChatMessages()) {
+//            Wyvern.DISCORD_BOT.sendMessageInGuild(discordMsg);
+//        }
     }
 }

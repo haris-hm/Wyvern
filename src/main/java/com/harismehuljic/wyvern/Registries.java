@@ -1,6 +1,7 @@
 package com.harismehuljic.wyvern;
 
 import com.harismehuljic.wyvern.command.PingCommand;
+import com.harismehuljic.wyvern.event.AllowChatMessageEvent;
 import com.harismehuljic.wyvern.event.GameMessageEvent;
 import com.harismehuljic.wyvern.event.ModServerLifecycleEvents;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,6 +21,7 @@ public class Registries {
     private static void registerEvents() {
         // Server Message events
         ServerMessageEvents.GAME_MESSAGE.register(new GameMessageEvent());
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(new AllowChatMessageEvent());
 
         // Server lifecycle events
         ServerLifecycleEvents.SERVER_STARTING.register(new ModServerLifecycleEvents.ServerStartingEvent());

@@ -13,24 +13,27 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class Wyvern implements ModInitializer {
-	public static final String MOD_ID = "wyvern";
+    public static final String MOD_ID = "wyvern";
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final String VERSION = FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata().getVersion().getFriendlyString();
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final String VERSION =
+            FabricLoader.getInstance().getModContainer(MOD_ID).isPresent()
+                    ? FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata().getVersion().getFriendlyString()
+                    : "UNKNOWN";
 
-	public static ConfigData CONFIG_DATA;
-	public static MinecraftServer SERVER;
-	public static DiscordBot DISCORD_BOT = new DiscordBot(List.of("ping.json", "players.json", "title.json", "tps.json"));
+    public static ConfigData CONFIG_DATA;
+    public static MinecraftServer SERVER;
+    public static DiscordBot DISCORD_BOT = new DiscordBot(List.of("ping.json", "players.json", "title.json", "tps.json"));
 
-	@Override
-	public void onInitialize() {
-		LOGGER.info("Wyvern version {} loading.", VERSION);
+    @Override
+    public void onInitialize() {
+        LOGGER.info("Wyvern version {} loading.", VERSION);
 
-		CONFIG_DATA = ConfigManager.loadConfig();
+        CONFIG_DATA = ConfigManager.loadConfig();
 
-		DISCORD_BOT.initialize();
-		Registries.registerAllRegistries();
+        DISCORD_BOT.initialize();
+        Registries.registerAllRegistries();
 
-		LOGGER.info("Wyvern successfully loaded!");
-	}
+        LOGGER.info("Wyvern successfully loaded!");
+    }
 }

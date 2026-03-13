@@ -8,6 +8,8 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.emoji.CustomEmoji;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.gateway.intent.Intent;
@@ -18,6 +20,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,6 +77,7 @@ public class DiscordBot {
                     new EventRegistrar(discordClient, this).registerEvents();
 
                     EmbedCreateSpec embed = this.generateEmbed("Server started!");
+                    getAllGuildEmojis();
 
                     if (configData.allowLifecycleMessages()) {
                         if (configData.sendLifecycleMessagesToAdminChannel()) {
@@ -205,5 +209,19 @@ public class DiscordBot {
                 .getChannelById(Snowflake.of(Wyvern.CONFIG_DATA.getDiscordChannelId()))
                 .cast(TextChannel.class)
                 .block();
+    }
+
+    private void getAllGuildEmojis() {
+        ArrayList<String> emojiUrls = new ArrayList<>();
+
+        Guild guild = Objects.requireNonNull(
+                this.discordClient
+                        .getGuildById(Snowflake.of(Wyvern.CONFIG_DATA.getDiscordGuildId()))
+                        .block()
+        );
+
+        guild.getEmojis()
+                .map(CustomEmoji::getImageUrl)
+                .subscribe(emojiUrls::add);
     }
 }
