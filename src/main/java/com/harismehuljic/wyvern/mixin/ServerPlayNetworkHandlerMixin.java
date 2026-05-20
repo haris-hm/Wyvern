@@ -26,10 +26,12 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
 
     @Inject(at = @At("HEAD"), method = "handleDecoratedMessage")
     private void onHandleDecoratedMessage(SignedMessage message, CallbackInfo ci) {
-        String discordMsg = MessageFormatter.formatDiscordMessage(this.player, message.getSignedContent());
-
         if (Wyvern.CONFIG_DATA.allowChatMessages()) {
-            Wyvern.DISCORD_BOT.sendMessageInGuild(discordMsg);
+            Wyvern.DISCORD_BOT.sendCustomMessage(
+                    MessageFormatter.formatName(this.player),
+                    MessageFormatter.getHelmetUrl(this.player),
+                    message.getSignedContent()
+            );
         }
     }
 }

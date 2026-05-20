@@ -60,7 +60,11 @@ public class PingCommand {
         String discordMsg = message.trim().isEmpty() ? String.format("<@%d>", memberId) : String.format("<@%d>, %s", memberId, message);
 
         assert sender != null;
-        discordBot.sendMessageInGuild(MessageFormatter.formatDiscordMessage(sender, discordMsg));
+        discordBot.sendCustomMessage(
+                MessageFormatter.formatName(sender),
+                MessageFormatter.getHelmetUrl(sender),
+                discordMsg
+        );
 
         MutableText gameMessage = (MutableText) sender.getDisplayName();
 
@@ -68,7 +72,7 @@ public class PingCommand {
         gameMessage.append(Text.literal(String.format(" just pinged @%s", recipientUsername)));
 
         if (!message.trim().isEmpty()) {
-            gameMessage.append(Text.literal(String.format(" saying %s", message)));
+            gameMessage.append(Text.literal(String.format(" saying \"%s\"", message)));
         }
 
         for (ServerPlayerEntity spe : server.getPlayerManager().getPlayerList()) {

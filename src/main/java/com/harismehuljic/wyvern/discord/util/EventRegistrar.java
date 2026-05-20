@@ -47,13 +47,21 @@ public class EventRegistrar {
         Message message = event.getMessage();
         String content = message.getContent();
         MessageChannel channel = message.getChannel().block();
-        String author = message.getAuthor().map(User::getUsername).orElse("Unknown User");
 
-        // Early return if the message is from a bot, the server hasn't initialized yet, or the channel isn't the bot's channel
-        if (message.getAuthor().get().isBot() || Wyvern.SERVER == null ||
+        // Early return if the message is from a bot/webhook, the server hasn't initialized yet, or the channel isn't the bot's channel
+        if (message.getWebhookId().isPresent() || (message.getAuthor().isPresent() && message.getAuthor().get().isBot())) {
+            return;
+        }
+
+        if (Wyvern.SERVER == null ||
                 Objects.requireNonNull(channel).getId().asLong() != Wyvern.CONFIG_DATA.getDiscordChannelId()) {
             return;
         }
+
+        String author = message.getAuthor().map(User::getUsername).orElse("Unknown User");
+
+        Wyvern.LOGGER.info("Received message {}, bot?: {}", content, message.getAuthor().get().isBot());
+
 
         Optional<URI> messageURI = getMessageUrl(message);
         MutableText discordMsg = Text.literal("[Discord]");
@@ -116,6 +124,7 @@ public class EventRegistrar {
         }
 
         for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
+            Wyvern.LOGGER.info("Sent message to {}", Objects.requireNonNull(spe.getDisplayName()).getLiteralString());
             spe.sendMessage(discordMsg);
         }
     }

@@ -10,9 +10,14 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.discordjson.json.WebhookCreateRequest;
+import discord4j.discordjson.json.WebhookData;
+import discord4j.discordjson.json.WebhookExecuteRequest;
 import discord4j.gateway.intent.Intent;
 import discord4j.gateway.intent.IntentSet;
+import discord4j.rest.service.WebhookService;
 import discord4j.rest.util.Color;
+import discord4j.rest.util.MultipartRequest;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,8 +30,10 @@ public class DiscordBot {
     private final ExecutorService discordBotThread = Executors.newSingleThreadExecutor();
     private final List<String> applicationCommands;
     private final HashMap<String, Long> cachedMemberNames = new HashMap<>();
+    private final String webhookName = Wyvern.MOD_ID;
 
     private GatewayDiscordClient discordClient;
+    private WebhookData webhookData;
 
     public DiscordBot(List<String> applicationCommands) {
         this.applicationCommands = applicationCommands;
@@ -87,6 +94,7 @@ public class DiscordBot {
                 try {
                     assert this.discordClient != null;
                     new GuildCommandRegistrar(this.discordClient.getRestClient()).registerCommands(this.applicationCommands);
+                    this.registerWebhooks(Wyvern.CONFIG_DATA.getDiscordChannelId());
                 } catch (Exception e) {
                     Wyvern.LOGGER.error("Error during Discord bot command registration:", e);
                 }
@@ -106,6 +114,25 @@ public class DiscordBot {
         this.discordClient.logout().block();
         this.discordBotThread.shutdown();
         Wyvern.LOGGER.info("Discord bot has been shut down.");
+    }
+
+    private void registerWebhooks(long channelId) {
+        WebhookService webhookService = this.discordClient.getRestClient().getWebhookService();
+        webhookService.getChannelWebhooks(channelId)
+                .filter(webhook ->
+                        webhook.name().isPresent() && webhook.name().get().equals(webhookName)
+                )
+                .next()
+                .switchIfEmpty(
+                        webhookService.createWebhook(channelId,
+                                WebhookCreateRequest.builder()
+                                        .name(webhookName)
+                                        .build(), null)
+                )
+                .subscribe(webhook -> {
+                    this.webhookData = webhook;
+                    Wyvern.LOGGER.info("Webhook registered!");
+                });
     }
 
     private boolean isNotInitialized() {
@@ -160,6 +187,27 @@ public class DiscordBot {
         if (channel != null) {
             channel.createMessage(embed).block();
         }
+    }
+
+    public void sendCustomMessage(String username, String avatarUrl, String message) {
+        if (this.webhookData == null) {
+            Wyvern.LOGGER.error("Webhook not initialized. Cannot send webhook message.");
+        }
+
+        WebhookService webhookService = this.discordClient.getRestClient().getWebhookService();
+        WebhookExecuteRequest request = WebhookExecuteRequest.builder()
+                .content(message)
+                .username(username)
+                .avatarUrl(avatarUrl)
+                .build();
+
+        webhookService.executeWebhook(
+                        webhookData.id().asLong(),
+                        webhookData.token().get(),
+                        true,
+                        MultipartRequest.ofRequest(request)
+                )
+                .subscribe();
     }
 
     public EmbedCreateSpec generateEmbed(String message) {
