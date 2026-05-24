@@ -80,14 +80,15 @@ public class EventRegistrar {
             AtomicReference<String> referencedContent = new AtomicReference<>(referencedMessage.getContent().trim());
             String referencedAuthor = referencedMessage.getAuthor().map(User::getUsername).orElse("Unknown User");
 
-            if (referencedMessage.getAuthor().get().getId().equals(this.discordClient.getSelfId())) {
-                if (referencedContent.get().contains("》")) {
-                    referencedContent.set(referencedContent.get().split("》")[1].trim());
-                }
-
+            if (referencedMessage.getAuthor().isPresent() &&
+                    referencedMessage.getAuthor().get().getId().equals(this.discordClient.getSelfId())) {
                 if (!referencedMessage.getEmbeds().isEmpty()) {
                     referencedMessage.getEmbeds().getFirst().getDescription().ifPresent(referencedContent::set);
                 }
+            }
+
+            if (referencedMessage.getWebhookId().isPresent()) {
+                referencedAuthor = referencedMessage.getUserData().username();
             }
 
             if (referencedContent.get().isEmpty() && !referencedMessage.getAttachments().isEmpty()) {
@@ -98,7 +99,7 @@ public class EventRegistrar {
                 referencedContent.set(referencedContent.get().substring(0, 40) + "...");
             }
 
-            String replyText = String.format(" in reply to %s \"%s\"", referencedAuthor, referencedContent);
+            String replyText = String.format(" in reply to %s saying \"%s\"", referencedAuthor, referencedContent);
 
             discordMsg.append(Text.literal(replyText).formatted(Formatting.AQUA));
         });
@@ -124,7 +125,6 @@ public class EventRegistrar {
         }
 
         for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
-            Wyvern.LOGGER.info("Sent message to {}", Objects.requireNonNull(spe.getDisplayName()).getLiteralString());
             spe.sendMessage(discordMsg);
         }
     }
