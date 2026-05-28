@@ -47,7 +47,7 @@ public class PlayersCommand implements ApplicationCommand {
 
         EmbedCreateSpec embed = EmbedCreateSpec.builder()
                 .color(Color.CYAN)
-                .title("Miku SMP")
+                .title(String.format("%s", Wyvern.CONFIG_DATA.getServerName()))
                 .description(description)
                 .addField("Players online:", playerNameList.toString(), false)
                 .timestamp(Instant.now())

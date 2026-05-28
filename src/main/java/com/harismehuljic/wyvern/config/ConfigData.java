@@ -3,6 +3,7 @@ package com.harismehuljic.wyvern.config;
 import com.harismehuljic.wyvern.Wyvern;
 
 public class ConfigData {
+    private String serverName = "SMP";
     private String discordToken = "";
     private long discordGuildId = 0;
     private long discordChannelId = 0;
@@ -28,6 +29,10 @@ public class ConfigData {
     }
 
     //Getters and setters
+    public String getServerName() {
+        return serverName;
+    }
+
     public String getDiscordToken() {
         return discordToken;
     }

@@ -2,6 +2,8 @@ package com.harismehuljic.wyvern.discord.util;
 
 import com.harismehuljic.wyvern.Wyvern;
 import com.harismehuljic.wyvern.discord.DiscordBot;
+import com.harismehuljic.wyvern.discord.commands.TitleCommand;
+import com.harismehuljic.wyvern.discord.commands.WhitelistCommand;
 import com.harismehuljic.wyvern.discord.util.markdown.MarkdownParser;
 import com.harismehuljic.wyvern.discord.util.markdown.MarkdownSegment;
 import discord4j.core.GatewayDiscordClient;
@@ -59,9 +61,6 @@ public class EventRegistrar {
         }
 
         String author = message.getAuthor().map(User::getUsername).orElse("Unknown User");
-
-        Wyvern.LOGGER.info("Received message {}, bot?: {}", content, message.getAuthor().get().isBot());
-
 
         Optional<URI> messageURI = getMessageUrl(message);
         MutableText discordMsg = Text.literal("[Discord]");
@@ -130,19 +129,9 @@ public class EventRegistrar {
     }
 
     private void processCommandCompletion(ChatInputAutoCompleteEvent event) {
-        if (event.getCommandName().equals("title")) {
-            String typing = event.getFocusedOption().getValue()
-                    .map(ApplicationCommandInteractionOptionValue::asString)
-                    .orElse("");
-
-            List<ApplicationCommandOptionChoiceData> suggestions = new ArrayList<>();
-
-            for (String color : Formatting.getNames(true, false)) {
-                suggestions.add(ApplicationCommandOptionChoiceData.builder().name(color).value(color).build());
-            }
-
-            // Finally, return the list of choices to the user
-            event.respondWithSuggestions(suggestions).subscribe();
+        switch (event.getCommandName()) {
+            case "title" -> TitleCommand.handleCommandCompletion(event);
+            case "whitelist" -> WhitelistCommand.handleCommandCompletion(event);
         }
     }
 

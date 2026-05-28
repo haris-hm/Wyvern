@@ -18,6 +18,7 @@ public class ApplicationCommandListener {
         applicationCommands.add(new PlayersCommand());
         applicationCommands.add(new TitleCommand());
         applicationCommands.add(new TpsCommand());
+        applicationCommands.add(new WhitelistCommand());
     }
 
     public static Mono<Void> handle(ChatInputInteractionEvent event) {

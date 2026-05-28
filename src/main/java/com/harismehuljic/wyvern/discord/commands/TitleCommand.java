@@ -1,9 +1,11 @@
 package com.harismehuljic.wyvern.discord.commands;
 
 import com.harismehuljic.wyvern.Wyvern;
+import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
@@ -13,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -126,5 +129,21 @@ public class TitleCommand implements ApplicationCommand {
 
     private int ticksToSeconds(int ticks) {
         return ticks / ticksPerSecond;
+    }
+
+    public static void handleCommandCompletion(ChatInputAutoCompleteEvent event) {
+        String typing = event.getFocusedOption().getValue()
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .orElse("");
+
+        List<ApplicationCommandOptionChoiceData> suggestions = new ArrayList<>();
+
+        for (String color : Formatting.getNames(true, false)) {
+            if (color.toLowerCase().startsWith(typing)) {
+                suggestions.add(ApplicationCommandOptionChoiceData.builder().name(color).value(color).build());
+            }
+        }
+
+        event.respondWithSuggestions(suggestions).subscribe();
     }
 }

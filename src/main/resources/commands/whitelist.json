@@ -1,0 +1,39 @@
+{
+  "name": "whitelist",
+  "description": "Manage the server whitelist.",
+  "default_member_permissions": "8",
+  "options": [
+    {
+      "name": "list",
+      "description": "List all players currently in the whitelist.",
+      "type": 1
+    },
+    {
+      "name": "add",
+      "description": "Add a player to the whitelist.",
+      "type": 1,
+      "options": [
+        {
+          "name": "username",
+          "description": "The username of the player to add.",
+          "type": 3,
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "remove",
+      "description": "Remove a player from the whitelist.",
+      "type": 1,
+      "options": [
+        {
+          "name": "username",
+          "description": "The username of the player to remove.",
+          "type": 3,
+          "required": true,
+          "autocomplete": true
+        }
+      ]
+    }
+  ]
+}
