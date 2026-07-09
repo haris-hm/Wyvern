@@ -1,6 +1,7 @@
 package com.harismehuljic.wyvern.discord.commands;
 
 import com.harismehuljic.wyvern.Wyvern;
+import com.harismehuljic.wyvern.discord.util.Formatting;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -21,7 +23,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 public class TitleCommand implements ApplicationCommand {
     private final int ticksPerSecond = 20;
-    private final Collection<String> minecraftColors = ChatFormatting.getNames(true, false);
+    private final Collection<String> minecraftColors = Formatting.getIds();
 
     @Override
     public String getName() {
@@ -94,7 +96,7 @@ public class TitleCommand implements ApplicationCommand {
                     .withContent("There are no players on the server.");
         }
 
-        MutableComponent titleDisplayText = Component.literal(titleText).withStyle(ChatFormatting.getByName(titleColor));
+        MutableComponent titleDisplayText = Component.literal(titleText).withStyle(Formatting.getByName(titleColor).getFormat());
 
         if (titleBolded) titleDisplayText.withStyle(ChatFormatting.BOLD);
         if (titleItalicized) titleDisplayText.withStyle(ChatFormatting.ITALIC);
@@ -105,7 +107,7 @@ public class TitleCommand implements ApplicationCommand {
         Wyvern.SERVER.getPlayerList().broadcastAll(new ClientboundSetTitleTextPacket(titleDisplayText));
 
         if (!subtitleText.isEmpty()) {
-            MutableComponent subtitleDisplayText = Component.literal(subtitleText).withStyle(ChatFormatting.getByName(subtitleColor));
+            MutableComponent subtitleDisplayText = Component.literal(subtitleText).withStyle(Formatting.getByName(subtitleColor).getFormat());
             if (subtitleBolded) subtitleDisplayText.withStyle(ChatFormatting.BOLD);
             if (subtitleItalicized) subtitleDisplayText.withStyle(ChatFormatting.ITALIC);
 
@@ -138,7 +140,7 @@ public class TitleCommand implements ApplicationCommand {
 
         List<ApplicationCommandOptionChoiceData> suggestions = new ArrayList<>();
 
-        for (String color : ChatFormatting.getNames(true, false)) {
+        for (String color : Formatting.getIds()) {
             if (color.toLowerCase().startsWith(typing)) {
                 suggestions.add(ApplicationCommandOptionChoiceData.builder().name(color).value(color).build());
             }

@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -36,26 +36,30 @@ loom {
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     // Discord API
     shadow(implementation('com.discord4j:discord4j-core:3.3.0'))
 }
 
 processResources {
-    inputs.property "version", project.version
+    def version = project.version
+    inputs.property "version", version
+    inputs.property "loader_version", project.loader_version
+    inputs.property "minecraft_version", project.minecraft_version
 
     filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
+        expand "version": version,
+                "loader_version": project.loader_version,
+                "minecraft_version": project.minecraft_version
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
@@ -74,19 +78,20 @@ jar {
     from("LICENSE") {
         rename { "${it}_${inputs.properties.archivesName}" }
     }
+
+    archiveClassifier.set("slim")
 }
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    archiveClassifier.set("dev")
+    archiveClassifier.set("") // shadowJar becomes the main artifact
 
     relocate "com.discord4j", "com.harismehuljic.wyvern.shadow.com.discord4j"
     relocate "io.netty", "com.harismehuljic.wyvern.shadow.io.netty"
 }
 
-remapJar {
+build {
     dependsOn(shadowJar)
-    inputFile = tasks.shadowJar.archiveFile
 }
 
 // configure the maven publication
