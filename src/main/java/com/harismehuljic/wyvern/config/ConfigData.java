@@ -8,6 +8,7 @@ public class ConfigData {
     private long discordGuildId = 0;
     private long discordChannelId = 0;
     private long adminChannelId = 0;
+    private long playerCountChannelId = 0;
     private boolean suppressLifecycleMessages = false;
     private boolean suppressChatMessages = false;
     private boolean sendLifecycleMessagesToAdminChannel = false;
@@ -46,6 +47,10 @@ public class ConfigData {
     }
 
     public long getAdminChannelId() {
+        return adminChannelId;
+    }
+
+    public long getPlayerCountChannelId() {
         return adminChannelId;
     }
 

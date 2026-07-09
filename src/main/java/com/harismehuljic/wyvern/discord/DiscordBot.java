@@ -8,7 +8,9 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.VoiceChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.discordjson.json.WebhookCreateRequest;
 import discord4j.discordjson.json.WebhookData;
@@ -229,6 +231,20 @@ public class DiscordBot {
                 .subscribe(
                         member -> this.cachedMemberNames.put(member.getUsername(), member.getId().asLong()),
                         error -> Wyvern.LOGGER.error("Error processing Discord guild members: {}", error.getMessage())
+                );
+    }
+
+    public void updatePlayerCountChannel(String prefix, int currentCount) {
+        ConfigData configData = Wyvern.CONFIG_DATA;
+        Snowflake channelId = Snowflake.of(configData.getPlayerCountChannelId());
+
+        this.discordClient.getChannelById(channelId)
+                .cast(VoiceChannel.class)
+                .flatMap(voiceChannel -> voiceChannel.edit()
+                        .withName(String.format("%s: %d", prefix, currentCount)))
+                .subscribe(
+                        null,
+                        error -> Wyvern.LOGGER.error("Failed to update player count channel name: {}", error.getMessage())
                 );
     }
 
