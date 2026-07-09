@@ -3,8 +3,8 @@ package com.harismehuljic.wyvern.event;
 import com.harismehuljic.wyvern.Wyvern;
 import com.harismehuljic.wyvern.discord.DiscordBot;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
 
 public class GameMessageEvent implements ServerMessageEvents.GameMessage {
     /**
@@ -17,7 +17,7 @@ public class GameMessageEvent implements ServerMessageEvents.GameMessage {
      * @param overlay {@code true} when the message is an overlay
      */
     @Override
-    public void onGameMessage(MinecraftServer server, Text message, boolean overlay) {
+    public void onGameMessage(MinecraftServer server, Component message, boolean overlay) {
         String msg = message.getString();
         DiscordBot discordBot = Wyvern.DISCORD_BOT;
 

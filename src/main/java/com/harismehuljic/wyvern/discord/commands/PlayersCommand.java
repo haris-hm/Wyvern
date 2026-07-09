@@ -4,11 +4,11 @@ import com.harismehuljic.wyvern.Wyvern;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
-import net.minecraft.server.network.ServerPlayerEntity;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.Objects;
+import net.minecraft.server.level.ServerPlayer;
 
 public class PlayersCommand implements ApplicationCommand {
 
@@ -27,14 +27,14 @@ public class PlayersCommand implements ApplicationCommand {
 
         StringBuilder playerNameList = new StringBuilder();
 
-        int playerCount = Wyvern.SERVER.getCurrentPlayerCount();
+        int playerCount = Wyvern.SERVER.getPlayerCount();
         String description = String.format("There %s currently **%s** %s online.",
                 playerCount == 1 ? "is" : "are",
                 playerCount,
                 playerCount == 1 ? "player" : "players"
         );
 
-        for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer spe : Wyvern.SERVER.getPlayerList().getPlayers()) {
             String playerName = Objects.requireNonNull(spe.getDisplayName()).getString();
             String realName = Objects.requireNonNull(spe.getGameProfile().name());
 

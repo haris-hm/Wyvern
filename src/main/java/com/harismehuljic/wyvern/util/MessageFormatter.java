@@ -1,12 +1,11 @@
 package com.harismehuljic.wyvern.util;
 
 import com.harismehuljic.wyvern.Wyvern;
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import java.util.Objects;
+import net.minecraft.server.level.ServerPlayer;
 
 public class MessageFormatter {
-    public static String formatDiscordMessage(ServerPlayerEntity spe, String message) {
+    public static String formatDiscordMessage(ServerPlayer spe, String message) {
         Objects.requireNonNull(spe.getDisplayName());
 
         String playerName = spe.getDisplayName().getString();
@@ -22,7 +21,7 @@ public class MessageFormatter {
         return format.replace("{username}", playerName).replace("{message}", messageContents);
     }
 
-    public static String formatName(ServerPlayerEntity spe) {
+    public static String formatName(ServerPlayer spe) {
         Objects.requireNonNull(spe.getDisplayName());
 
         String playerName = spe.getDisplayName().getString();
@@ -32,7 +31,7 @@ public class MessageFormatter {
         return nicknamed ? String.format("%s (%s)", playerName, realName) : playerName;
     }
 
-    public static String getHelmetUrl(ServerPlayerEntity spe) {
-        return String.format("https://minotar.net/helm/%s/100.png", spe.getUuidAsString());
+    public static String getHelmetUrl(ServerPlayer spe) {
+        return String.format("https://minotar.net/helm/%s/100.png", spe.getStringUUID());
     }
 }

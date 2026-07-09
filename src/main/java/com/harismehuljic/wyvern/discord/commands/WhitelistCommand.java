@@ -10,13 +10,12 @@ import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.rest.util.Color;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.Whitelist;
-import net.minecraft.server.WhitelistEntry;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.ApiServices;
+import net.minecraft.server.Services;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.UserWhiteList;
+import net.minecraft.server.players.UserWhiteListEntry;
 import org.jetbrains.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
@@ -61,21 +60,21 @@ public class WhitelistCommand implements ApplicationCommand {
         };
     }
 
-    @Nullable PlayerConfigEntry fetchPlayer(String username, MinecraftServer server) {
-        ApiServices apiServices = server.getApiServices();
-        GameProfile profile = apiServices.profileResolver().getProfileByName(username).orElse(null);
+    @Nullable NameAndId fetchPlayer(String username, MinecraftServer server) {
+        Services apiServices = server.services();
+        GameProfile profile = apiServices.profileResolver().fetchByName(username).orElse(null);
 
         if (profile == null) {
             return null;
         }
 
-        return new PlayerConfigEntry(profile);
+        return new NameAndId(profile);
     }
 
     private Mono<Void> handleList(ChatInputInteractionEvent event, MinecraftServer server) {
-        String joinedNames = String.join("\n", server.getPlayerManager().getWhitelistedNames());
+        String joinedNames = String.join("\n", server.getPlayerList().getWhiteListNames());
 
-        int playerCount = server.getPlayerManager().getWhitelistedNames().length;
+        int playerCount = server.getPlayerList().getWhiteListNames().length;
         String description = String.format("There %s currently **%s** %s whitelisted.",
                 playerCount == 1 ? "is" : "are",
                 playerCount,
@@ -108,8 +107,8 @@ public class WhitelistCommand implements ApplicationCommand {
                     .withContent("Please provide a valid username.");
         }
 
-        Whitelist whitelist = server.getPlayerManager().getWhitelist();
-        PlayerConfigEntry player = this.fetchPlayer(username, server);
+        UserWhiteList whitelist = server.getPlayerList().getWhiteList();
+        NameAndId player = this.fetchPlayer(username, server);
 
         if (player == null) {
             return event.reply()
@@ -117,7 +116,7 @@ public class WhitelistCommand implements ApplicationCommand {
                     .withContent(String.format("It seems the player \"%s\" doesn't exist.", username));
         }
 
-        whitelist.add(new WhitelistEntry(player));
+        whitelist.add(new UserWhiteListEntry(player));
 
         return event.reply()
                 .withEphemeral(true)
@@ -137,23 +136,23 @@ public class WhitelistCommand implements ApplicationCommand {
                     .withContent("Please provide a valid username.");
         }
 
-        Whitelist whitelist = server.getPlayerManager().getWhitelist();
-        PlayerConfigEntry player = this.fetchPlayer(username, server);
+        UserWhiteList whitelist = server.getPlayerList().getWhiteList();
+        NameAndId player = this.fetchPlayer(username, server);
 
         if (player == null) {
             return event.reply()
                     .withEphemeral(true)
                     .withContent(String.format("It seems the player \"%s\" doesn't exist.", username));
-        } else if (!whitelist.isAllowed(player)) {
+        } else if (!whitelist.isWhiteListed(player)) {
             return event.reply()
                     .withEphemeral(true)
                     .withContent(String.format("It seems the player \"%s\" isn't whitelisted on this server.", username));
         }
 
         whitelist.remove(player);
-        Objects.requireNonNull(server.getPlayerManager().getPlayer(player.name()))
-                .networkHandler
-                .disconnect(Text.of("You are not white-listed on this server!"));
+        Objects.requireNonNull(server.getPlayerList().getPlayerByName(player.name()))
+                .connection
+                .disconnect(Component.nullToEmpty("You are not white-listed on this server!"));
 
         return event.reply()
                 .withEphemeral(true)
@@ -174,7 +173,7 @@ public class WhitelistCommand implements ApplicationCommand {
         MinecraftServer server = Wyvern.SERVER;
 
         if (server != null) {
-            for (String name : server.getPlayerManager().getWhitelistedNames()) {
+            for (String name : server.getPlayerList().getWhiteListNames()) {
                 if (name.toLowerCase().startsWith(typing)) {
                     suggestions.add(ApplicationCommandOptionChoiceData.builder().name(name).value(name).build());
 

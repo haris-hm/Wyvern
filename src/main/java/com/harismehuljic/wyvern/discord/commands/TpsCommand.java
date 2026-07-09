@@ -14,6 +14,6 @@ public class TpsCommand implements ApplicationCommand {
     public Mono<Void> handle(ChatInputInteractionEvent event) {
         return event.reply()
                 .withEphemeral(true)
-                .withContent("Current server TPS: " + Wyvern.SERVER.getTickManager().getTickRate());
+                .withContent("Current server TPS: " + Wyvern.SERVER.tickRateManager().tickrate());
     }
 }

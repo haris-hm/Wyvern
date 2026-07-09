@@ -6,22 +6,22 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.server.level.ServerPlayer;
 
 public class TitleCommand implements ApplicationCommand {
     private final int ticksPerSecond = 20;
-    private final Collection<String> minecraftColors = Formatting.getNames(true, false);
+    private final Collection<String> minecraftColors = ChatFormatting.getNames(true, false);
 
     @Override
     public String getName() {
@@ -88,34 +88,34 @@ public class TitleCommand implements ApplicationCommand {
                     .withContent("Error: No title text provided.");
         }
 
-        if (Wyvern.SERVER.getCurrentPlayerCount() == 0) {
+        if (Wyvern.SERVER.getPlayerCount() == 0) {
             return event.reply()
                     .withEphemeral(false)
                     .withContent("There are no players on the server.");
         }
 
-        MutableText titleDisplayText = Text.literal(titleText).formatted(Formatting.byName(titleColor));
+        MutableComponent titleDisplayText = Component.literal(titleText).withStyle(ChatFormatting.getByName(titleColor));
 
-        if (titleBolded) titleDisplayText.formatted(Formatting.BOLD);
-        if (titleItalicized) titleDisplayText.formatted(Formatting.ITALIC);
+        if (titleBolded) titleDisplayText.withStyle(ChatFormatting.BOLD);
+        if (titleItalicized) titleDisplayText.withStyle(ChatFormatting.ITALIC);
 
-        Wyvern.SERVER.getPlayerManager().sendToAll(new TitleFadeS2CPacket(secondsToTicks(1), titleStayTicks, secondsToTicks(1)));
+        Wyvern.SERVER.getPlayerList().broadcastAll(new ClientboundSetTitlesAnimationPacket(secondsToTicks(1), titleStayTicks, secondsToTicks(1)));
 
         // Send a new title packet to all members
-        Wyvern.SERVER.getPlayerManager().sendToAll(new TitleS2CPacket(titleDisplayText));
+        Wyvern.SERVER.getPlayerList().broadcastAll(new ClientboundSetTitleTextPacket(titleDisplayText));
 
         if (!subtitleText.isEmpty()) {
-            MutableText subtitleDisplayText = Text.literal(subtitleText).formatted(Formatting.byName(subtitleColor));
-            if (subtitleBolded) subtitleDisplayText.formatted(Formatting.BOLD);
-            if (subtitleItalicized) subtitleDisplayText.formatted(Formatting.ITALIC);
+            MutableComponent subtitleDisplayText = Component.literal(subtitleText).withStyle(ChatFormatting.getByName(subtitleColor));
+            if (subtitleBolded) subtitleDisplayText.withStyle(ChatFormatting.BOLD);
+            if (subtitleItalicized) subtitleDisplayText.withStyle(ChatFormatting.ITALIC);
 
-            Wyvern.SERVER.getPlayerManager().sendToAll(new SubtitleS2CPacket(subtitleDisplayText));
+            Wyvern.SERVER.getPlayerList().broadcastAll(new ClientboundSetSubtitleTextPacket(subtitleDisplayText));
         }
 
         String inGameMessage = String.format("@%s just displayed a title!", event.getUser().getUsername());
 
-        for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
-            spe.sendMessage(Text.literal(inGameMessage).formatted(Formatting.AQUA));
+        for (ServerPlayer spe : Wyvern.SERVER.getPlayerList().getPlayers()) {
+            spe.sendSystemMessage(Component.literal(inGameMessage).withStyle(ChatFormatting.AQUA));
         }
 
         return event.reply()
@@ -138,7 +138,7 @@ public class TitleCommand implements ApplicationCommand {
 
         List<ApplicationCommandOptionChoiceData> suggestions = new ArrayList<>();
 
-        for (String color : Formatting.getNames(true, false)) {
+        for (String color : ChatFormatting.getNames(true, false)) {
             if (color.toLowerCase().startsWith(typing)) {
                 suggestions.add(ApplicationCommandOptionChoiceData.builder().name(color).value(color).build());
             }

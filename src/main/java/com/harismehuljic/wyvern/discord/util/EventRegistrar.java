@@ -16,15 +16,16 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,17 +64,17 @@ public class EventRegistrar {
         String author = message.getAuthor().map(User::getUsername).orElse("Unknown User");
 
         Optional<URI> messageURI = getMessageUrl(message);
-        MutableText discordMsg = Text.literal("[Discord]");
+        MutableComponent discordMsg = Component.literal("[Discord]");
         messageURI.ifPresent(uri -> {
             discordMsg.setStyle(
                     Style.EMPTY
                             .withClickEvent(new ClickEvent.OpenUrl(uri))
-                            .withHoverEvent(new HoverEvent.ShowText(Text.of("Click to view in Discord")))
-                            .withFormatting(Formatting.BLUE)
+                            .withHoverEvent(new HoverEvent.ShowText(Component.nullToEmpty("Click to view in Discord")))
+                            .applyFormat(ChatFormatting.BLUE)
             );
         });
 
-        discordMsg.append(Text.literal(" " + author).formatted(Formatting.AQUA));
+        discordMsg.append(Component.literal(" " + author).withStyle(ChatFormatting.AQUA));
 
         message.getReferencedMessage().ifPresent(referencedMessage -> {
             AtomicReference<String> referencedContent = new AtomicReference<>(referencedMessage.getContent().trim());
@@ -100,31 +101,31 @@ public class EventRegistrar {
 
             String replyText = String.format(" in reply to %s saying \"%s\"", referencedAuthor, referencedContent);
 
-            discordMsg.append(Text.literal(replyText).formatted(Formatting.AQUA));
+            discordMsg.append(Component.literal(replyText).withStyle(ChatFormatting.AQUA));
         });
 
-        discordMsg.append(Text.literal(" 》 ").formatted(Formatting.WHITE));
+        discordMsg.append(Component.literal(" 》 ").withStyle(ChatFormatting.WHITE));
 
         for (MarkdownSegment msgSegment : MarkdownParser.parse(content)) {
             String textContent = msgSegment.text();
-            Formatting[] segmentFormatting = {Formatting.WHITE, Formatting.WHITE};
+            ChatFormatting[] segmentFormatting = {ChatFormatting.WHITE, ChatFormatting.WHITE};
 
             switch (msgSegment.type()) {
-                case BOLD -> segmentFormatting[1] = Formatting.BOLD;
-                case ITALICIZED -> segmentFormatting[1] = Formatting.ITALIC;
-                case UNDERLINED -> segmentFormatting[1] = Formatting.UNDERLINE;
+                case BOLD -> segmentFormatting[1] = ChatFormatting.BOLD;
+                case ITALICIZED -> segmentFormatting[1] = ChatFormatting.ITALIC;
+                case UNDERLINED -> segmentFormatting[1] = ChatFormatting.UNDERLINE;
             }
 
-            discordMsg.append(Text.literal(textContent).formatted(segmentFormatting));
+            discordMsg.append(Component.literal(textContent).withStyle(segmentFormatting));
         }
 
         if (!message.getAttachments().isEmpty()) {
-            if (!discordMsg.getString().endsWith(" ")) discordMsg.append(Text.literal(" "));
-            discordMsg.append(Text.literal("(This message contains images and/or files attached. Click this message to view in Discord.)").formatted(Formatting.ITALIC, Formatting.WHITE));
+            if (!discordMsg.getString().endsWith(" ")) discordMsg.append(Component.literal(" "));
+            discordMsg.append(Component.literal("(This message contains images and/or files attached. Click this message to view in Discord.)").withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE));
         }
 
-        for (ServerPlayerEntity spe : Wyvern.SERVER.getPlayerManager().getPlayerList()) {
-            spe.sendMessage(discordMsg);
+        for (ServerPlayer spe : Wyvern.SERVER.getPlayerList().getPlayers()) {
+            spe.sendSystemMessage(discordMsg);
         }
     }
 
